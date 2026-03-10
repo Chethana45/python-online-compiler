@@ -1,55 +1,113 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
 
-<title>Login</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Login • Python Compiler IDE</title>
+
+<link rel="stylesheet" href="/static/style.css">
 
 <style>
 
+/* Background */
+
 body{
-font-family:Arial;
-background:linear-gradient(120deg,#7b2cbf,#ff4d9d);
+margin:0;
+font-family:Arial, Helvetica, sans-serif;
+background: linear-gradient(135deg,#667eea,#764ba2);
 height:100vh;
 display:flex;
-justify-content:center;
 align-items:center;
+justify-content:center;
 }
 
-.form-box{
-background:white;
+/* Login box */
+
+.login-box{
+background:rgba(255,255,255,0.1);
+backdrop-filter: blur(15px);
 padding:40px;
-border-radius:10px;
 width:320px;
+border-radius:12px;
 text-align:center;
-box-shadow:0 10px 30px rgba(0,0,0,0.2);
+box-shadow:0 10px 30px rgba(0,0,0,0.3);
+color:white;
 }
+
+/* Logo */
+
+.logo{
+font-size:30px;
+font-weight:bold;
+margin-bottom:10px;
+letter-spacing:1px;
+}
+
+/* Subtitle */
+
+.subtitle{
+opacity:0.9;
+font-size:14px;
+margin-bottom:25px;
+}
+
+/* Inputs */
 
 input{
-width:90%;
-padding:10px;
-margin:10px;
-border-radius:5px;
-border:1px solid #ccc;
+width:100%;
+padding:12px;
+margin:10px 0;
+border:none;
+border-radius:8px;
+outline:none;
+font-size:14px;
 }
+
+/* Input focus */
+
+input:focus{
+box-shadow:0 0 5px #fff;
+}
+
+/* Button */
 
 button{
-padding:10px 20px;
-background:#7b2cbf;
-color:white;
-border:none;
-border-radius:6px;
-cursor:pointer;
 width:100%;
+padding:12px;
+margin-top:10px;
+border:none;
+border-radius:8px;
+background:#00c6ff;
+background:linear-gradient(90deg,#00c6ff,#0072ff);
+color:white;
+font-size:15px;
+cursor:pointer;
+transition:0.3s;
 }
+
+/* Button hover */
 
 button:hover{
-background:#5a189a;
+transform:scale(1.05);
+box-shadow:0 5px 15px rgba(0,0,0,0.3);
 }
 
-.error{
-color:red;
-margin-bottom:10px;
+/* Register link */
+
+a{
+display:block;
+margin-top:18px;
+color:white;
+text-decoration:none;
+font-size:13px;
+opacity:0.9;
+}
+
+a:hover{
+text-decoration:underline;
 }
 
 </style>
@@ -58,13 +116,13 @@ margin-bottom:10px;
 
 <body>
 
-<div class="form-box">
+<div class="login-box">
 
-<h2>Python IDE Login</h2>
+<div class="logo">⚡ Python IDE</div>
 
-{% if error %}
-<p class="error">{{error}}</p>
-{% endif %}
+<div class="subtitle">
+Online Python Compiler Platform
+</div>
 
 <form action="/login" method="POST">
 
@@ -76,11 +134,10 @@ margin-bottom:10px;
 
 </form>
 
-<br>
-
 <a href="/register">Create new account</a>
 
 </div>
 
 </body>
+
 </html>
