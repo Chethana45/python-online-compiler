@@ -1,127 +1,141 @@
+// =============================
 // RUN PYTHON CODE
+// =============================
 
-function runCode(){
+async function runCode(){
 
-let code=document.getElementById("editor").value
+    const code = document.getElementById("editor").value
+    const input = document.getElementById("programInput") ? 
+                  document.getElementById("programInput").value : ""
 
-fetch("/run",{
+    document.getElementById("output").innerText = "Running..."
 
-method:"POST",
+    try{
 
-headers:{
-"Content-Type":"application/json"
-},
+        const response = await fetch("/run",{
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({
+                code:code,
+                input:input
+            })
+        })
 
-body:JSON.stringify({
-code:code
-})
+        const data = await response.json()
 
-})
+        document.getElementById("output").innerText = data.output
 
-.then(res=>res.json())
-
-.then(data=>{
-document.getElementById("output").innerText=data.output
-})
+    }
+    catch(err){
+        document.getElementById("output").innerText = "Error running program"
+    }
 
 }
 
 
 
+// =============================
 // SAVE FILE
+// =============================
 
 function saveFile(){
 
-let filename=prompt("Enter file name")
+    let filename = prompt("Enter file name")
 
-let code=document.getElementById("editor").value
+    if(!filename) return
 
-fetch("/save_file",{
+    let code = document.getElementById("editor").value
 
-method:"POST",
+    fetch("/save_file",{
 
-headers:{
-"Content-Type":"application/json"
-},
+        method:"POST",
 
-body:JSON.stringify({
-filename:filename,
-code:code
-})
+        headers:{
+            "Content-Type":"application/json"
+        },
 
-})
+        body:JSON.stringify({
+            filename:filename,
+            code:code
+        })
 
-.then(res=>res.json())
+    })
 
-.then(data=>{
-alert("File Saved!")
-loadFiles()
-})
+    .then(res=>res.json())
+
+    .then(data=>{
+        alert("File Saved!")
+        loadFiles()
+    })
 
 }
 
 
 
-// LOAD FILES
+// =============================
+// LOAD FILE LIST
+// =============================
 
 function loadFiles(){
 
-fetch("/get_files")
+    fetch("/get_files")
 
-.then(res=>res.json())
+    .then(res=>res.json())
 
-.then(files=>{
+    .then(files=>{
 
-let list=document.getElementById("fileList")
+        let list = document.getElementById("fileList")
 
-list.innerHTML=""
+        if(!list) return
 
-files.forEach(file=>{
+        list.innerHTML = ""
 
-let li=document.createElement("li")
+        files.forEach(file=>{
 
-li.innerText=file.filename
+            let li = document.createElement("li")
 
-li.onclick=function(){
+            li.innerText = file.filename
 
-document.getElementById("editor").value=file.code
+            li.onclick = function(){
+                document.getElementById("editor").value = file.code
+            }
+
+            list.appendChild(li)
+
+        })
+
+    })
 
 }
 
-list.appendChild(li)
-
-})
-
-})
-
-}
 
 
-
+// =============================
 // NEW FILE
+// =============================
 
 function newFile(){
-
-document.getElementById("editor").value=""
-
+    document.getElementById("editor").value = ""
 }
 
 
 
+// =============================
 // THEME TOGGLE
+// =============================
 
 function toggleTheme(){
-
-document.body.classList.toggle("light-theme")
-
+    document.body.classList.toggle("light-theme")
 }
 
 
 
-// LOAD FILES WHEN PAGE OPENS
+// =============================
+// LOAD FILES WHEN PAGE LOADS
+// =============================
 
-window.onload=function(){
-
-loadFiles()
-
+window.onload = function(){
+    loadFiles()
 }
