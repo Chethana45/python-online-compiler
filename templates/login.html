@@ -1,45 +1,70 @@
-
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Login • Python Compiler IDE</title>
-
-<link rel="stylesheet" href="/static/style.css">
+<title>Login</title>
 
 <style>
 
-/* Extra login animations */
-
-.logo{
-font-size:28px;
-font-weight:bold;
-margin-bottom:10px;
-letter-spacing:1px;
+body{
+font-family:Arial;
+background:linear-gradient(120deg,#7b2cbf,#ff4d9d);
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
 }
 
-.subtitle{
-opacity:0.8;
-font-size:14px;
-margin-bottom:20px;
+.form-box{
+background:white;
+padding:40px;
+border-radius:10px;
+width:320px;
+text-align:center;
+box-shadow:0 10px 30px rgba(0,0,0,0.2);
+}
+
+input{
+width:90%;
+padding:10px;
+margin:10px;
+border-radius:5px;
+border:1px solid #ccc;
+}
+
+button{
+padding:10px 20px;
+background:#7b2cbf;
+color:white;
+border:none;
+border-radius:6px;
+cursor:pointer;
+width:100%;
+}
+
+button:hover{
+background:#5a189a;
+}
+
+.error{
+color:red;
+margin-bottom:10px;
 }
 
 </style>
 
 </head>
 
-<body class="login-body">
+<body>
 
-<div class="login-box">
+<div class="form-box">
 
-<div class="logo">⚡ Python IDE</div>
+<h2>Python IDE Login</h2>
 
-<div class="subtitle">
-Online Python Compiler Platform
-</div>
+{% if error %}
+<p class="error">{{error}}</p>
+{% endif %}
 
 <form action="/login" method="POST">
 
@@ -51,10 +76,11 @@ Online Python Compiler Platform
 
 </form>
 
+<br>
+
 <a href="/register">Create new account</a>
 
 </div>
 
 </body>
-
 </html>

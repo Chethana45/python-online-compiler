@@ -70,7 +70,7 @@ def register():
             conn.commit()
         except:
             conn.close()
-            return "Username already exists"
+            return render_template("register.html", error="Username already exists")
 
         conn.close()
 
@@ -102,7 +102,7 @@ def login():
         session["user"] = username
         return redirect("/dashboard")
 
-    return "Invalid username or password"
+    return render_template("login.html", error="Invalid username or password")
 
 
 # ---------------- LOGOUT ----------------
@@ -185,9 +185,6 @@ def get_files():
 @app.route("/delete_file", methods=["POST"])
 def delete_file():
 
-    if "user" not in session:
-        return jsonify({"status":"not_logged_in"})
-
     data=request.json
     filename=data.get("filename")
 
@@ -209,9 +206,6 @@ def delete_file():
 
 @app.route("/rename_file", methods=["POST"])
 def rename_file():
-
-    if "user" not in session:
-        return jsonify({"status":"not_logged_in"})
 
     data=request.json
     old_name=data.get("old_name")
@@ -238,21 +232,18 @@ def run_code():
 
     data=request.json
     code=data.get("code","")
-    program_input=data.get("input","")
 
     blocked_keywords=[
         "import os",
         "import sys",
         "subprocess",
-        "shutil",
         "open(",
-        "__import__",
         "eval(",
         "exec("
     ]
 
     for word in blocked_keywords:
-        if word.lower() in code.lower():
+        if word in code.lower():
             return jsonify({"output":"Restricted operation detected"})
 
     filename=f"temp_{uuid.uuid4().hex}.py"
@@ -264,7 +255,6 @@ def run_code():
 
         result=subprocess.run(
             ["python3",filename],
-            input=program_input,
             capture_output=True,
             text=True,
             timeout=5
@@ -272,14 +262,8 @@ def run_code():
 
         output=result.stdout+result.stderr
 
-        if len(output)>5000:
-            output=output[:5000]+"\nOutput truncated..."
-
     except subprocess.TimeoutExpired:
-        output="Execution timed out (possible infinite loop)"
-
-    except Exception as e:
-        output=str(e)
+        output="Execution timed out"
 
     finally:
         if os.path.exists(filename):
