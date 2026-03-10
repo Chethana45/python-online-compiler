@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, redirect, session, url_for
+from flask import Flask, render_template, request, jsonify, redirect, session
 import subprocess
 import os
 import uuid
@@ -43,7 +43,7 @@ init_db()
 @app.route("/")
 def home():
     if "user" in session:
-        return redirect(url_for("dashboard"))
+        return redirect("/dashboard")
     return render_template("login.html")
 
 
@@ -109,11 +109,8 @@ def login():
 
 @app.route("/logout")
 def logout():
-
-    # Clear all session data
-    session.clear()
-
-    return redirect(url_for("home"))
+    session.pop("user", None)
+    return redirect("/")
 
 
 # ---------------- DASHBOARD ----------------
@@ -122,9 +119,9 @@ def logout():
 def dashboard():
 
     if "user" not in session:
-        return redirect(url_for("home"))
+        return redirect("/")
 
-    return render_template("dashboard.html", username=session["user"])
+    return render_template("dashboard.html")
 
 
 # ---------------- SAVE FILE ----------------
@@ -133,27 +130,27 @@ def dashboard():
 def save_file():
 
     if "user" not in session:
-        return jsonify({"status": "not_logged_in"})
+        return jsonify({"status":"not_logged_in"})
 
-    data = request.json
-    filename = data.get("filename")
-    code = data.get("code")
+    data=request.json
+    filename=data.get("filename")
+    code=data.get("code")
 
-    conn = sqlite3.connect("users.db")
-    cur = conn.cursor()
+    conn=sqlite3.connect("users.db")
+    cur=conn.cursor()
 
     cur.execute(
         "INSERT INTO files(username,filename,code) VALUES (?,?,?)",
-        (session["user"], filename, code)
+        (session["user"],filename,code)
     )
 
     conn.commit()
     conn.close()
 
-    return jsonify({"status": "saved"})
+    return jsonify({"status":"saved"})
 
 
-# ---------------- LOAD USER FILES ----------------
+# ---------------- GET FILES ----------------
 
 @app.route("/get_files")
 def get_files():
@@ -161,26 +158,77 @@ def get_files():
     if "user" not in session:
         return jsonify([])
 
-    conn = sqlite3.connect("users.db")
-    cur = conn.cursor()
+    conn=sqlite3.connect("users.db")
+    cur=conn.cursor()
 
     cur.execute(
         "SELECT filename,code FROM files WHERE username=?",
         (session["user"],)
     )
 
-    rows = cur.fetchall()
+    rows=cur.fetchall()
     conn.close()
 
-    files = []
+    files=[]
 
     for r in rows:
         files.append({
-            "filename": r[0],
-            "code": r[1]
+            "filename":r[0],
+            "code":r[1]
         })
 
     return jsonify(files)
+
+
+# ---------------- DELETE FILE ----------------
+
+@app.route("/delete_file", methods=["POST"])
+def delete_file():
+
+    if "user" not in session:
+        return jsonify({"status":"not_logged_in"})
+
+    data=request.json
+    filename=data.get("filename")
+
+    conn=sqlite3.connect("users.db")
+    cur=conn.cursor()
+
+    cur.execute(
+        "DELETE FROM files WHERE username=? AND filename=?",
+        (session["user"],filename)
+    )
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({"status":"deleted"})
+
+
+# ---------------- RENAME FILE ----------------
+
+@app.route("/rename_file", methods=["POST"])
+def rename_file():
+
+    if "user" not in session:
+        return jsonify({"status":"not_logged_in"})
+
+    data=request.json
+    old_name=data.get("old_name")
+    new_name=data.get("new_name")
+
+    conn=sqlite3.connect("users.db")
+    cur=conn.cursor()
+
+    cur.execute(
+        "UPDATE files SET filename=? WHERE username=? AND filename=?",
+        (new_name,session["user"],old_name)
+    )
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({"status":"renamed"})
 
 
 # ---------------- RUN CODE ----------------
@@ -188,14 +236,11 @@ def get_files():
 @app.route("/run", methods=["POST"])
 def run_code():
 
-    data = request.json
-    code = data.get("code", "")
-    program_input = data.get("input", "")
+    data=request.json
+    code=data.get("code","")
+    program_input=data.get("input","")
 
-    if len(code) > 10000:
-        return jsonify({"output": "Code too large."})
-
-    blocked_keywords = [
+    blocked_keywords=[
         "import os",
         "import sys",
         "subprocess",
@@ -208,39 +253,39 @@ def run_code():
 
     for word in blocked_keywords:
         if word.lower() in code.lower():
-            return jsonify({"output": "Restricted operation detected."})
+            return jsonify({"output":"Restricted operation detected"})
 
-    filename = f"temp_{uuid.uuid4().hex}.py"
+    filename=f"temp_{uuid.uuid4().hex}.py"
 
-    with open(filename, "w") as f:
+    with open(filename,"w") as f:
         f.write(code)
 
     try:
 
-        result = subprocess.run(
-            ["python3", filename],
+        result=subprocess.run(
+            ["python3",filename],
             input=program_input,
             capture_output=True,
             text=True,
             timeout=5
         )
 
-        output = result.stdout + result.stderr
+        output=result.stdout+result.stderr
 
-        if len(output) > 5000:
-            output = output[:5000] + "\nOutput truncated..."
+        if len(output)>5000:
+            output=output[:5000]+"\nOutput truncated..."
 
     except subprocess.TimeoutExpired:
-        output = "Execution timed out (possible infinite loop)"
+        output="Execution timed out (possible infinite loop)"
 
     except Exception as e:
-        output = str(e)
+        output=str(e)
 
     finally:
         if os.path.exists(filename):
             os.remove(filename)
 
-    return jsonify({"output": output})
+    return jsonify({"output":output})
 
 
 # ---------------- START SERVER ----------------

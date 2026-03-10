@@ -1,141 +1,210 @@
-// =============================
-// RUN PYTHON CODE
-// =============================
+// RUN CODE
 
-async function runCode(){
+function runCode(){
 
-    const code = document.getElementById("editor").value
-    const input = document.getElementById("programInput") ? 
-                  document.getElementById("programInput").value : ""
+let code=document.getElementById("editor").value
 
-    document.getElementById("output").innerText = "Running..."
+fetch("/run",{
 
-    try{
+method:"POST",
 
-        const response = await fetch("/run",{
-            method:"POST",
-            headers:{
-                "Content-Type":"application/json"
-            },
-            body:JSON.stringify({
-                code:code,
-                input:input
-            })
-        })
+headers:{
+"Content-Type":"application/json"
+},
 
-        const data = await response.json()
+body:JSON.stringify({
+code:code
+})
 
-        document.getElementById("output").innerText = data.output
+})
 
-    }
-    catch(err){
-        document.getElementById("output").innerText = "Error running program"
-    }
+.then(res=>res.json())
+
+.then(data=>{
+document.getElementById("output").innerText=data.output
+})
 
 }
 
 
 
-// =============================
 // SAVE FILE
-// =============================
 
 function saveFile(){
 
-    let filename = prompt("Enter file name")
+let filename=prompt("Enter file name")
 
-    if(!filename) return
+if(!filename) return
 
-    let code = document.getElementById("editor").value
+let code=document.getElementById("editor").value
 
-    fetch("/save_file",{
+fetch("/save_file",{
 
-        method:"POST",
+method:"POST",
 
-        headers:{
-            "Content-Type":"application/json"
-        },
+headers:{
+"Content-Type":"application/json"
+},
 
-        body:JSON.stringify({
-            filename:filename,
-            code:code
-        })
+body:JSON.stringify({
+filename:filename,
+code:code
+})
 
-    })
+})
 
-    .then(res=>res.json())
+.then(res=>res.json())
 
-    .then(data=>{
-        alert("File Saved!")
-        loadFiles()
-    })
+.then(data=>{
+alert("File Saved")
+loadFiles()
+})
 
 }
 
 
 
-// =============================
-// LOAD FILE LIST
-// =============================
+// LOAD FILES
 
 function loadFiles(){
 
-    fetch("/get_files")
+fetch("/get_files")
 
-    .then(res=>res.json())
+.then(res=>res.json())
 
-    .then(files=>{
+.then(files=>{
 
-        let list = document.getElementById("fileList")
+let list=document.getElementById("fileList")
 
-        if(!list) return
+list.innerHTML=""
 
-        list.innerHTML = ""
+files.forEach(file=>{
 
-        files.forEach(file=>{
+let li=document.createElement("li")
 
-            let li = document.createElement("li")
+li.style.display="flex"
+li.style.justifyContent="space-between"
+li.style.alignItems="center"
 
-            li.innerText = file.filename
+let name=document.createElement("span")
 
-            li.onclick = function(){
-                document.getElementById("editor").value = file.code
-            }
+name.innerText=file.filename
 
-            list.appendChild(li)
+name.onclick=function(){
+document.getElementById("editor").value=file.code
+}
 
-        })
+let controls=document.createElement("div")
 
-    })
+let renameBtn=document.createElement("button")
+renameBtn.innerText="✏"
+renameBtn.onclick=function(){
+renameFile(file.filename)
+}
+
+let deleteBtn=document.createElement("button")
+deleteBtn.innerText="🗑"
+deleteBtn.onclick=function(){
+deleteFile(file.filename)
+}
+
+controls.appendChild(renameBtn)
+controls.appendChild(deleteBtn)
+
+li.appendChild(name)
+li.appendChild(controls)
+
+list.appendChild(li)
+
+})
+
+})
 
 }
 
 
 
-// =============================
+// DELETE FILE
+
+function deleteFile(filename){
+
+if(!confirm("Delete this file?")) return
+
+fetch("/delete_file",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+filename:filename
+})
+
+})
+
+.then(res=>res.json())
+
+.then(data=>{
+loadFiles()
+})
+
+}
+
+
+
+// RENAME FILE
+
+function renameFile(oldname){
+
+let newname=prompt("Enter new file name")
+
+if(!newname) return
+
+fetch("/rename_file",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+old_name:oldname,
+new_name:newname
+})
+
+})
+
+.then(res=>res.json())
+
+.then(data=>{
+loadFiles()
+})
+
+}
+
+
+
 // NEW FILE
-// =============================
 
 function newFile(){
-    document.getElementById("editor").value = ""
+document.getElementById("editor").value=""
 }
 
 
 
-// =============================
 // THEME TOGGLE
-// =============================
 
 function toggleTheme(){
-    document.body.classList.toggle("light-theme")
+document.body.classList.toggle("light-theme")
 }
 
 
 
-// =============================
 // LOAD FILES WHEN PAGE LOADS
-// =============================
 
-window.onload = function(){
-    loadFiles()
+window.onload=function(){
+loadFiles()
 }
